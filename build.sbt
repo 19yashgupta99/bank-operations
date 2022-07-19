@@ -42,8 +42,8 @@ Global / cancelable := false // ctrl-c
 
 libraryDependencies ++= Seq(
   "com.chuusai" %% "shapeless" % "2.3.3",
-  "org.scalatest" %% "scalatest" % "3.2.12" % Test,
-  "org.mockito" % "mockito-core" % "3.6.28" % Test
+  "org.scalamock" %% "scalamock" % "5.1.0" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.9" % Test
 )
 
 resolvers ++= Seq(

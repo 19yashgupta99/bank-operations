@@ -20,7 +20,7 @@ message AccountNo{
 }
 
 
-service BankOperationsMVC {
+service BankOperationsMVCService {
   option (kalix.codegen) = {
     action: {}
   };

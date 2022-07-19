@@ -1,11 +1,12 @@
 package bank.operations.domain
 
-import bank.operations.api.AccountCreationResponse.IsAccountCreated.{ACCOUNT_EXIST, CREATION_FAILED, CREATION_SUCCEED}
-import bank.operations.api._
-import bank.operations.domain.ShapelessObjects._
-import bank.operations.domain.Transaction.OperationType
 import bank.operations.{api, domain}
-import kalix.scalasdk.eventsourcedentity.{EventSourcedEntity, EventSourcedEntityContext}
+import bank.operations.api.{AccountCreationResponse, AccountInfo, AccountTransactionStatus}
+import bank.operations.api.AccountCreationResponse.IsAccountCreated.{ACCOUNT_EXIST, CREATION_FAILED, CREATION_SUCCEED}
+import bank.operations.domain.ShapelessObjects.{genAccountDetailsApi, genAccountDetailsDomain}
+import bank.operations.domain.Transaction.OperationType
+import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
+import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
 import java.util.UUID
 
@@ -14,11 +15,11 @@ import java.util.UUID
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class AccountEntity(context: EventSourcedEntityContext) extends AbstractAccountEntity {
+class BankOperations(context: EventSourcedEntityContext) extends AbstractBankOperations {
   override def emptyState: AccountState =
     AccountState.defaultInstance
 
-  override def createAccount(currentState: AccountState, account: Account): EventSourcedEntity.Effect[AccountCreationResponse] = {
+  override def createAccount(currentState: AccountState, account: api.Account): EventSourcedEntity.Effect[api.AccountCreationResponse] = {
     if(currentState.accNo.nonEmpty){
       val response = AccountCreationResponse(
         isAccountCreated = ACCOUNT_EXIST,
@@ -53,7 +54,7 @@ class AccountEntity(context: EventSourcedEntityContext) extends AbstractAccountE
     }
   }
 
-  override def creditAccount(currentState: AccountState, accountCreditRequest: AccountCreditRequest): EventSourcedEntity.Effect[AccountTransactionStatus] = {
+  override def creditAccount(currentState: AccountState, accountCreditRequest: api.AccountCreditRequest): EventSourcedEntity.Effect[api.AccountTransactionStatus] = {
     if(!currentState.accNo.equals(accountCreditRequest.accNo) || currentState.accNo.isEmpty){
       effects.error(s"Sorry, Account number: ${accountCreditRequest.accNo} does not exist!")
     }else{
@@ -75,7 +76,7 @@ class AccountEntity(context: EventSourcedEntityContext) extends AbstractAccountE
     }
   }
 
-  override def debitAccount(currentState: AccountState, accountDebitRequest: AccountDebitRequest): EventSourcedEntity.Effect[AccountTransactionStatus] = {
+  override def debitAccount(currentState: AccountState, accountDebitRequest: api.AccountDebitRequest): EventSourcedEntity.Effect[api.AccountTransactionStatus] = {
     if(!currentState.accNo.equals(accountDebitRequest.accNo) || currentState.accNo.isEmpty){
       effects.error(s"Sorry, Account number: ${accountDebitRequest.accNo} does not exist")
     }else{
@@ -101,7 +102,41 @@ class AccountEntity(context: EventSourcedEntityContext) extends AbstractAccountE
     }
   }
 
-  override def accountCreated(currentState: AccountState, accountCreated: AccountCreated): AccountState ={
+  override def getAccountInformation(currentState: AccountState, accountInformationRequest: api.AccountInformationRequest): EventSourcedEntity.Effect[api.AccountInfo] = {
+    if(currentState.accNo.isEmpty){
+      effects.error(s"Sorry, ${accountInformationRequest.accNo} is not valid")
+    }else{
+      val transactions =
+        currentState.transactions
+          .map{
+            x =>
+              api.Transaction(
+                id = x.id,
+                recipientName = x.recipientName,
+                operation = api.OperationType.fromValue(x.operation.value),
+                amount = x.amount,
+                createdDtm = x.createdDtm,
+                totalAmount = x.totalAmount
+              )
+          }
+
+      val accountDetailsOption = currentState.accountDetails match {
+        case Some(value) =>
+          Some(convertDomainToApi(value))
+        case _ => None
+      }
+
+      val accountInfo = AccountInfo(
+        accNo = currentState.accNo,
+        totalAmount = currentState.totalAmount,
+        accountDetails = accountDetailsOption,
+        transactions = transactions
+      )
+      effects.reply(accountInfo)
+    }
+  }
+
+  override def accountCreated(currentState: AccountState, accountCreated: AccountCreated): AccountState = {
     AccountState(
       accountCreated.accNo,
       100.0,
@@ -154,43 +189,6 @@ class AccountEntity(context: EventSourcedEntityContext) extends AbstractAccountE
       transactions = currentState.transactions :+ newTransaction,
       totalAmount = currentState.totalAmount - accountDebited.amount
     )
-  }
-
-  override def getAccountInformation(
-                                      currentState: AccountState,
-                                      accountInformationRequest: AccountInformationRequest
-                                    ): EventSourcedEntity.Effect[AccountInfo] = {
-    if(currentState.accNo.isEmpty){
-      effects.error(s"Sorry, ${accountInformationRequest.accNo} is not valid")
-    }else{
-      val transactions =
-        currentState.transactions
-          .map{
-            x =>
-              api.Transaction(
-                id = x.id,
-                recipientName = x.recipientName,
-                operation = api.OperationType.fromValue(x.operation.value),
-                amount = x.amount,
-                createdDtm = x.createdDtm,
-                totalAmount = x.totalAmount
-              )
-          }
-
-      val accountDetailsOption = currentState.accountDetails match {
-        case Some(value) =>
-          Some(convertDomainToApi(value))
-        case _ => None
-      }
-
-      val accountInfo = AccountInfo(
-        accNo = currentState.accNo,
-        totalAmount = currentState.totalAmount,
-        accountDetails = accountDetailsOption,
-        transactions = transactions
-      )
-      effects.reply(accountInfo)
-    }
   }
 
   private def convertDomainToApi(request: domain.AccountDetails): api.AccountDetails = {

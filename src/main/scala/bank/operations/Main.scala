@@ -1,7 +1,7 @@
 package bank.operations
 
-import bank.operations.api.BankOperationsMVCAction
-import bank.operations.domain.AccountEntity
+import bank.operations.api.BankOperationsMVCServiceAction
+import bank.operations.domain.BankOperations
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -20,8 +20,8 @@ object Main {
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
     KalixFactory.withComponents(
-      new AccountEntity(_),
-      new BankOperationsMVCAction(_)
+      new BankOperations(_),
+      new BankOperationsMVCServiceAction(_)
     )
   }
 

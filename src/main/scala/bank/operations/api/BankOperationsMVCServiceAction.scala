@@ -12,7 +12,7 @@ import scala.concurrent.Future
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class BankOperationsMVCAction(creationContext: ActionCreationContext) extends AbstractBankOperationsMVCAction {
+class BankOperationsMVCServiceAction(creationContext: ActionCreationContext) extends AbstractBankOperationsMVCServiceAction {
 
   override def createAccountRequest(accountCreationRequest: AccountCreationRequest): Action.Effect[AccountNo] = {
     if(accountCreationRequest.uid.isEmpty){
@@ -31,7 +31,7 @@ class BankOperationsMVCAction(creationContext: ActionCreationContext) extends Ab
         state = request.state,
         creationDate = System.currentTimeMillis()
       )
-      val created: Future[AccountCreationResponse] = components.accountEntity.createAccount(account).execute()
+      val created: Future[AccountCreationResponse] = components.bankOperations.createAccount(account).execute()
 
       val effect: Future[Action.Effect[AccountNo]] =
         created.map{

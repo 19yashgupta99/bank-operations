@@ -85,11 +85,11 @@ message AccountTransactionStatus{
   double amount = 3;
 }
 
-service BankOperations {
+service BankOperationsService {
   option (kalix.codegen) = {
     event_sourced_entity: {
-      name: "bank.operations.domain.AccountEntity"
-      entity_type: "eventsourced-bank-operations"
+      name: "bank.operations.domain.BankOperations"
+      entity_type: "bank-operation"
       state: "bank.operations.domain.AccountState"
       events: [
         "bank.operations.domain.AccountCreated",
@@ -98,8 +98,6 @@ service BankOperations {
       ]
     }
   };
-
-  option (kalix.service).acl.allow = { principal: ALL };
 
   rpc createAccount(Account) returns (AccountCreationResponse) {}
 

@@ -11,10 +11,10 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class AccountEntitySpec extends AnyWordSpec with Matchers {
-  "The AccountEntity" should {
+class BankOperationsSpec extends AnyWordSpec with Matchers {
+  "The BankOperations" should {
     "have example test that can be removed" in {
-      val testKit = AccountEntityTestKit(new AccountEntity(_))
+      val testKit = BankOperationsTestKit(new BankOperations(_))
       pending
       // use the testkit to execute a command:
       // val result: EventSourcedResult[R] = testKit.someOperation(SomeRequest("id"));
@@ -29,9 +29,27 @@ class AccountEntitySpec extends AnyWordSpec with Matchers {
     }
 
     "correctly process commands of type createAccount" in {
-      val testKit = AccountEntityTestKit(new AccountEntity(_))
+      val testKit = BankOperationsTestKit(new BankOperations(_))
       pending
-      // val result: EventSourcedResult[api.Account] = testKit.createAccount(api.AccountCreationRequest(...))
+      // val result: EventSourcedResult[api.AccountCreationResponse] = testKit.createAccount(api.Account(...))
+    }
+
+    "correctly process commands of type creditAccount" in {
+      val testKit = BankOperationsTestKit(new BankOperations(_))
+      pending
+      // val result: EventSourcedResult[api.AccountTransactionStatus] = testKit.creditAccount(api.AccountCreditRequest(...))
+    }
+
+    "correctly process commands of type debitAccount" in {
+      val testKit = BankOperationsTestKit(new BankOperations(_))
+      pending
+      // val result: EventSourcedResult[api.AccountTransactionStatus] = testKit.debitAccount(api.AccountDebitRequest(...))
+    }
+
+    "correctly process commands of type getAccountInformation" in {
+      val testKit = BankOperationsTestKit(new BankOperations(_))
+      pending
+      // val result: EventSourcedResult[api.AccountInfo] = testKit.getAccountInformation(api.AccountInformationRequest(...))
     }
   }
 }

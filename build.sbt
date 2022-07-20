@@ -41,7 +41,6 @@ run / fork := false
 Global / cancelable := false // ctrl-c
 
 libraryDependencies ++= Seq(
-  "com.chuusai" %% "shapeless" % "2.3.3",
   "org.scalamock" %% "scalamock" % "5.1.0" % Test,
   "org.scalatest" %% "scalatest" % "3.1.0" % Test
 )

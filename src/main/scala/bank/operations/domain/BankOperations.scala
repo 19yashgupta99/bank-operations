@@ -1,12 +1,10 @@
 package bank.operations.domain
 
-import bank.operations.{api, domain}
-import bank.operations.api.{AccountCreationResponse, AccountInfo, AccountTransactionStatus}
 import bank.operations.api.AccountCreationResponse.IsAccountCreated.{ACCOUNT_EXIST, CREATION_FAILED, CREATION_SUCCEED}
-import bank.operations.domain.ShapelessObjects.{genAccountDetailsApi, genAccountDetailsDomain}
+import bank.operations.api.{AccountCreationResponse, AccountInfo, AccountTransactionStatus}
 import bank.operations.domain.Transaction.OperationType
-import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
-import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
+import bank.operations.{api, domain}
+import kalix.scalasdk.eventsourcedentity.{EventSourcedEntity, EventSourcedEntityContext}
 
 import java.util.UUID
 
@@ -122,7 +120,15 @@ class BankOperations(context: EventSourcedEntityContext) extends AbstractBankOpe
 
       val accountDetailsOption = currentState.accountDetails match {
         case Some(value) =>
-          Some(convertDomainToApi(value))
+          val apiAccountDetails = api.AccountDetails(
+            uid = value.uid,
+            name = value.name,
+            address = value.address,
+            city = value.city,
+            state = value.state,
+            createdDtm = value.createdDtm
+          )
+          Some(apiAccountDetails)
         case _ => None
       }
 
@@ -188,14 +194,6 @@ class BankOperations(context: EventSourcedEntityContext) extends AbstractBankOpe
     currentState.copy(
       transactions = currentState.transactions :+ newTransaction,
       totalAmount = currentState.totalAmount - accountDebited.amount
-    )
-  }
-
-  private def convertDomainToApi(request: domain.AccountDetails): api.AccountDetails = {
-    genAccountDetailsApi.from(
-      genAccountDetailsDomain.to(
-        request
-      )
     )
   }
 }
